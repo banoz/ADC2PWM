@@ -1,5 +1,6 @@
 #include <Arduino.h>
 
+#include <avr/wdt.h>
 
 #define PWM_PIN PB1
 #define ADC_PIN 1 // PB2
@@ -23,9 +24,14 @@ void setup() {
   ADCSRA = _BV(ADEN) |        // Enable ADC
            _BV(ADPS2) |       // Set prescaler to 64 (125kHz with 8MHz clock)
            _BV(ADPS1);
+
+  wdt_enable(WDTO_1S); // Enable watchdog timer with 1 second timeout
 }
 
 void loop() {
+
+  wdt_reset();
+
   // Start ADC conversion
   ADCSRA |= _BV(ADSC);
 
@@ -38,5 +44,5 @@ void loop() {
   // Scale ADC value to match OCR1A range (0 to OCR1C)
   uint8_t pwmValue = adcValue >> 2;
 
-  OCR0B = pwmValue;
+  OCR0B = 0xFF - pwmValue;
 }
